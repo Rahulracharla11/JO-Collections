@@ -10,7 +10,7 @@ export interface UserProfile {
   displayName: string;
 }
 
-export type PageView = 'home' | 'my-account';
+export type PageView = 'home' | 'my-account' | 'admin';
 export type AccountSubView =
   | 'auth'
   | 'lost-password'
@@ -22,6 +22,9 @@ export type AccountSubView =
   | 'account-details';
 
 interface ShopContextType {
+  // Products Catalog
+  products: Product[];
+
   // Cart & Wishlist
   cart: CartItem[];
   wishlist: Product[];
@@ -59,6 +62,7 @@ interface ShopContextType {
   setAccountSubView: (view: AccountSubView) => void;
   navigateToHome: () => void;
   navigateToAccount: (view?: AccountSubView) => void;
+  navigateToAdmin: () => void;
 
   // User & Authentication
   user: UserProfile | null;
@@ -76,6 +80,33 @@ interface ShopContextType {
 const ShopContext = createContext<ShopContextType | undefined>(undefined);
 
 export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Products Catalog (initialized with local storage or PRODUCTS default)
+  const [products, setProducts] = useState<Product[]>(() => {
+    const saved = localStorage.getItem('jo_products');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return PRODUCTS;
+      }
+    }
+    return PRODUCTS;
+  });
+
+  // Listen for admin catalog updates
+  useEffect(() => {
+    const handleProductsUpdated = () => {
+      const saved = localStorage.getItem('jo_products');
+      if (saved) {
+        try {
+          setProducts(JSON.parse(saved));
+        } catch (e) {}
+      }
+    };
+    window.addEventListener('jo_products_updated', handleProductsUpdated);
+    return () => window.removeEventListener('jo_products_updated', handleProductsUpdated);
+  }, []);
+
   // Cart
   const [cart, setCart] = useState<CartItem[]>(() => {
     const initialProd = PRODUCTS.find(p => p.id === '12c7c') || PRODUCTS[0];
@@ -91,8 +122,36 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Navigation State
-  const [currentPage, setCurrentPage] = useState<PageView>('home');
+  // Initial Page Routing from URL path
+  const [currentPage, setCurrentPage] = useState<PageView>(() => {
+    const path = window.location.pathname;
+    const hash = window.location.hash;
+    if (path.startsWith('/admin') || hash.startsWith('#/admin') || hash === '#admin') {
+      return 'admin';
+    }
+    if (path.startsWith('/my-account') || hash.startsWith('#/my-account')) {
+      return 'my-account';
+    }
+    return 'home';
+  });
+
+  // Browser history popstate handler
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      const hash = window.location.hash;
+      if (path.startsWith('/admin') || hash.startsWith('#/admin') || hash === '#admin') {
+        setCurrentPage('admin');
+      } else if (path.startsWith('/my-account') || hash.startsWith('#/my-account')) {
+        setCurrentPage('my-account');
+      } else {
+        setCurrentPage('home');
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   const [accountSubView, setAccountSubView] = useState<AccountSubView>('auth');
   const [authSuccessNotice, setAuthSuccessNotice] = useState<string | null>(null);
 
@@ -185,19 +244,27 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
-  // Navigation handlers
+  // Navigation handlers with clean URL history updates
   const navigateToHome = () => {
     setCurrentPage('home');
+    window.history.pushState(null, '', '/');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const navigateToAccount = (view?: AccountSubView) => {
     setCurrentPage('my-account');
+    window.history.pushState(null, '', '/my-account');
     if (view) {
       setAccountSubView(view);
     } else {
       setAccountSubView(user ? 'dashboard' : 'auth');
     }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const navigateToAdmin = () => {
+    setCurrentPage('admin');
+    window.history.pushState(null, '', '/admin');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -261,7 +328,6 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!trimmed) {
       return { success: false, error: 'Please enter a username or email address.' };
     }
-    // Transition to Set New Password screen
     setAccountSubView('reset-password');
     return { success: true };
   };
@@ -271,7 +337,6 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: false, error: 'Password must be at least 6 characters.' };
     }
 
-    // Default or current user
     const defaultUser: UserProfile = user || {
       username: 'rrahulwork03',
       email: 'rahulwork03@gmail.com',
@@ -317,6 +382,7 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <ShopContext.Provider
       value={{
+        products,
         cart,
         wishlist,
         addToCart,
@@ -347,6 +413,7 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setAccountSubView,
         navigateToHome,
         navigateToAccount,
+        navigateToAdmin,
         user,
         isAuthenticated,
         authSuccessNotice,

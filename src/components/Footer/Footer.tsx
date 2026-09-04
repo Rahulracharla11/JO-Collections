@@ -3,7 +3,7 @@ import { Instagram, Youtube, Facebook, ArrowUp } from 'lucide-react';
 import { useShop } from '../../context/ShopContext';
 
 export const Footer: React.FC = () => {
-  const { setActiveCategory, setIsCartOpen, navigateToAccount } = useShop();
+  const { setActiveCategory, setIsCartOpen, navigateToAccount, navigateToAdmin } = useShop();
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -206,6 +206,17 @@ export const Footer: React.FC = () => {
                 <a href="#wishlist" className="hover:text-[#f372ac] transition-colors">
                   Wishlist
                 </a>
+              </li>
+              <li className="pt-1.5 border-t border-gray-100">
+                <button
+                  onClick={() => navigateToAdmin()}
+                  className="hover:text-[#f372ac] transition-colors text-left flex items-center space-x-1 font-semibold text-[#222]"
+                >
+                  <span>Admin Portal</span>
+                  <span className="text-[10px] bg-[#f372ac]/15 text-[#f372ac] px-1.5 py-0.2 rounded font-mono">
+                    /admin
+                  </span>
+                </button>
               </li>
             </ul>
           </div>

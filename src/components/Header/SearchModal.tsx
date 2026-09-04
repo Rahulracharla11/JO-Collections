@@ -4,7 +4,7 @@ import { useShop } from '../../context/ShopContext';
 import { PRODUCTS } from '../../data/products';
 
 export const SearchModal: React.FC = () => {
-  const { isSearchOpen, setIsSearchOpen, addToCart, setQuickViewProduct } = useShop();
+  const { products, isSearchOpen, setIsSearchOpen, addToCart, setQuickViewProduct } = useShop();
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
@@ -16,7 +16,7 @@ export const SearchModal: React.FC = () => {
   if (!isSearchOpen) return null;
 
   const results = searchTerm.trim()
-    ? PRODUCTS.filter(
+    ? products.filter(
         p =>
           p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           p.categories.some(c => c.toLowerCase().includes(searchTerm.toLowerCase()))

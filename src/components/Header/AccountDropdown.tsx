@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useShop } from '../../context/ShopContext';
-import { User, LogOut, Package, Settings, LayoutDashboard } from 'lucide-react';
+import { User, LogOut, Package, Settings, LayoutDashboard, Shield } from 'lucide-react';
 
 interface AccountDropdownProps {
   isOpen: boolean;
@@ -13,7 +13,8 @@ export const AccountDropdown: React.FC<AccountDropdownProps> = ({ isOpen, onClos
     isAuthenticated,
     login,
     logout,
-    navigateToAccount
+    navigateToAccount,
+    navigateToAdmin
   } = useShop();
 
   const [username, setUsername] = useState('');
@@ -83,6 +84,16 @@ export const AccountDropdown: React.FC<AccountDropdownProps> = ({ isOpen, onClos
           >
             <Settings className="w-4 h-4 text-gray-500" />
             <span>Account details</span>
+          </button>
+          <button
+            onClick={() => {
+              navigateToAdmin();
+              onClose();
+            }}
+            className="w-full px-5 py-2 flex items-center space-x-2.5 hover:bg-gray-50 text-gray-800 hover:text-[#f372ac] transition-colors text-left font-semibold"
+          >
+            <Shield className="w-4 h-4 text-[#f372ac]" />
+            <span>Admin Portal</span>
           </button>
         </div>
 
@@ -176,6 +187,17 @@ export const AccountDropdown: React.FC<AccountDropdownProps> = ({ isOpen, onClos
             className="font-semibold text-[#222] hover:text-[#f372ac] underline transition-colors ml-1"
           >
             Create an account
+          </button>
+        </div>
+        <div className="pt-2 border-t border-gray-100">
+          <button
+            onClick={() => {
+              navigateToAdmin();
+              onClose();
+            }}
+            className="text-xs text-[#f372ac] font-bold hover:underline"
+          >
+            Admin Portal (/admin) &rarr;
           </button>
         </div>
       </div>

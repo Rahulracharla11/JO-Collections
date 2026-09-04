@@ -17,6 +17,8 @@ import { Footer } from './components/Footer/Footer';
 import { QuickViewModal } from './components/Modals/QuickViewModal';
 import { CartNotificationToast } from './components/Toast/CartNotificationToast';
 import { MyAccountPage } from './pages/MyAccountPage';
+import { AdminProvider } from './admin/context/AdminContext';
+import { AdminLayout } from './admin/AdminLayout';
 
 const MainContent: React.FC = () => {
   const { currentPage } = useShop();
@@ -54,31 +56,48 @@ const MainContent: React.FC = () => {
   );
 };
 
+const AppContainer: React.FC = () => {
+  const { currentPage, navigateToHome } = useShop();
+
+  // If on /admin, render dedicated Admin Panel layout
+  if (currentPage === 'admin') {
+    return (
+      <AdminProvider>
+        <AdminLayout onExitToStore={navigateToHome} />
+      </AdminProvider>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col bg-white text-[#222222]">
+      {/* Top Header Social & Links */}
+      <TopBar />
+
+      {/* Main Sticky Navbar with Mega Menus */}
+      <Navbar />
+
+      {/* Floating Modals & Drawers */}
+      <MobileMenuDrawer />
+      <SearchModal />
+      <CartDrawer />
+      <QuickViewModal />
+      <CartNotificationToast />
+
+      {/* Main Page Content */}
+      <main className="flex-1">
+        <MainContent />
+      </main>
+
+      {/* Authentic Jo Collections Footer */}
+      <Footer />
+    </div>
+  );
+};
+
 export function App() {
   return (
     <ShopProvider>
-      <div className="min-h-screen flex flex-col bg-white text-[#222222]">
-        {/* Top Header Social & Links */}
-        <TopBar />
-
-        {/* Main Sticky Navbar with Mega Menus */}
-        <Navbar />
-
-        {/* Floating Modals & Drawers */}
-        <MobileMenuDrawer />
-        <SearchModal />
-        <CartDrawer />
-        <QuickViewModal />
-        <CartNotificationToast />
-
-        {/* Main Page Content */}
-        <main className="flex-1">
-          <MainContent />
-        </main>
-
-        {/* Authentic Jo Collections Footer */}
-        <Footer />
-      </div>
+      <AppContainer />
     </ShopProvider>
   );
 }

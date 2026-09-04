@@ -5,7 +5,7 @@ import { useShop } from '../../context/ShopContext';
 import { Filter, SlidersHorizontal } from 'lucide-react';
 
 export const ProductCarousel: React.FC = () => {
-  const { activeCategory, setActiveCategory, searchQuery } = useShop();
+  const { products, activeCategory, setActiveCategory, searchQuery } = useShop();
   const [sortBy, setSortBy] = useState('menu_order');
   const [showOnlySale, setShowOnlySale] = useState(false);
 
@@ -20,7 +20,7 @@ export const ProductCarousel: React.FC = () => {
   ];
 
   const filteredProducts = useMemo(() => {
-    return PRODUCTS.filter(p => {
+    return products.filter(p => {
       // Category filter
       if (activeCategory !== 'all') {
         const matchesCategory =
