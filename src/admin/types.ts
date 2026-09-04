@@ -56,4 +56,4 @@ export interface StoreSettings {
   };
 }
 
-export type AdminTab = 'dashboard' | 'products' | 'product-form' | 'orders' | 'users' | 'settings';
+export type AdminTab = 'dashboard' | 'products' | 'product-form' | 'orders' | 'users' | 'user-details' | 'settings';

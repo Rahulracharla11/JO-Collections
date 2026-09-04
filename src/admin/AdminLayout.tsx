@@ -22,6 +22,7 @@ import { AdminProducts } from './pages/AdminProducts';
 import { AdminProductForm } from './pages/AdminProductForm';
 import { AdminOrders } from './pages/AdminOrders';
 import { AdminUsers } from './pages/AdminUsers';
+import { AdminUserDetails } from './pages/AdminUserDetails';
 import { AdminSettings } from './pages/AdminSettings';
 import { AdminLogin } from './pages/AdminLogin';
 import { AdminTab } from './types';
@@ -69,6 +70,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onExitToStore }) => {
         return <AdminOrders />;
       case 'users':
         return <AdminUsers />;
+      case 'user-details':
+        return <AdminUserDetails />;
       case 'settings':
         return <AdminSettings />;
       default:
@@ -123,7 +126,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onExitToStore }) => {
               </p>
               {navItems.map(item => {
                 const Icon = item.icon;
-                const isActive = activeTab === item.id;
+                const isActive =
+                  activeTab === item.id ||
+                  (item.id === 'users' && activeTab === 'user-details') ||
+                  (item.id === 'products' && activeTab === 'product-form');
                 return (
                   <button
                     key={item.id}
@@ -190,7 +196,13 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onExitToStore }) => {
               <div className="hidden sm:flex items-center space-x-2 text-xs text-gray-500 font-medium">
                 <span className="text-gray-400">Admin</span>
                 <span>/</span>
-                <span className="text-gray-900 font-semibold capitalize">{activeTab}</span>
+                <span className="text-gray-900 font-semibold">
+                  {activeTab === 'product-form'
+                    ? 'Product Editor'
+                    : activeTab === 'user-details'
+                    ? 'Customer Details'
+                    : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+                </span>
               </div>
             </div>
 

@@ -252,6 +252,9 @@ interface AdminContextType {
   editingProduct: Product | null;
   openAddProduct: () => void;
   openEditProduct: (product: Product) => void;
+  selectedUser: AdminUser | null;
+  openUserDetails: (user: AdminUser) => void;
+  closeUserDetails: () => void;
 
   // Products
   products: Product[];
@@ -291,6 +294,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
 
   // Products state (synced with localStorage)
   const [products, setProducts] = useState<Product[]>(() => {
@@ -404,6 +408,19 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Dedicated User Details Navigation
+  const openUserDetails = (user: AdminUser) => {
+    setSelectedUser(user);
+    setActiveTab('user-details');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const closeUserDetails = () => {
+    setSelectedUser(null);
+    setActiveTab('users');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // Sync products with localStorage and notify storefront
   const saveProducts = (newProducts: Product[]) => {
     setProducts(newProducts);
@@ -497,6 +514,9 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         editingProduct,
         openAddProduct,
         openEditProduct,
+        selectedUser,
+        openUserDetails,
+        closeUserDetails,
         products,
         addProduct,
         updateProduct,
