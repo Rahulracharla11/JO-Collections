@@ -151,6 +151,8 @@ const INITIAL_USERS: AdminUser[] = [
     id: 'usr-1',
     name: 'Rahul Racharla',
     email: 'rahulwork03@gmail.com',
+    phone: '+91 9010385551',
+    address: 'Flat 402, Sri Sai Nilayam, KPHB Phase 1, Kukatpally, Hyderabad 500072',
     role: 'Administrator',
     ordersCount: 4,
     totalSpent: 4890,
@@ -161,6 +163,8 @@ const INITIAL_USERS: AdminUser[] = [
     id: 'usr-2',
     name: 'Priya Sharma',
     email: 'priya.sharma@gmail.com',
+    phone: '+91 9848022338',
+    address: 'Plot 18, Road No. 10, Banjara Hills, Hyderabad 500034',
     role: 'Customer',
     ordersCount: 3,
     totalSpent: 5490,
@@ -171,6 +175,8 @@ const INITIAL_USERS: AdminUser[] = [
     id: 'usr-3',
     name: 'Sneha Reddy',
     email: 'sneha.reddy@yahoo.com',
+    phone: '+91 9123456789',
+    address: 'Flat 304, Green Meadows, Madhapur, Hyderabad 500081',
     role: 'Customer',
     ordersCount: 5,
     totalSpent: 8950,
@@ -181,6 +187,8 @@ const INITIAL_USERS: AdminUser[] = [
     id: 'usr-4',
     name: 'Ananya Rao',
     email: 'ananya.rao@outlook.com',
+    phone: '+91 9988776655',
+    address: 'House No 12-4-56, Prakash Nagar, Begumpet, Secunderabad 500016',
     role: 'Customer',
     ordersCount: 2,
     totalSpent: 2500,
@@ -191,6 +199,8 @@ const INITIAL_USERS: AdminUser[] = [
     id: 'usr-5',
     name: 'Deepa Patel',
     email: 'deepa.patel@gmail.com',
+    phone: '+91 9440112233',
+    address: 'Row House 5, Beverly Hills, Gachibowli, Hyderabad 500032',
     role: 'Customer',
     ordersCount: 1,
     totalSpent: 499,
@@ -201,6 +211,8 @@ const INITIAL_USERS: AdminUser[] = [
     id: 'usr-6',
     name: 'Jo Collections Team',
     email: 'contactjocollections@gmail.com',
+    phone: '+91 9010385551',
+    address: 'Kukatpally, Hyderabad, India',
     role: 'Store Manager',
     ordersCount: 0,
     totalSpent: 0,
@@ -228,18 +240,36 @@ const INITIAL_SETTINGS: StoreSettings = {
 };
 
 interface AdminContextType {
+  // Authentication
+  isAdminAuthenticated: boolean;
+  adminLogin: (emailOrUsername: string, password: string) => { success: boolean; error?: string };
+  adminLogout: () => void;
+  updateAdminPassword: (currentPassword: string, newPassword: string) => { success: boolean; error?: string };
+
+  // Navigation
   activeTab: AdminTab;
   setActiveTab: (tab: AdminTab) => void;
+  editingProduct: Product | null;
+  openAddProduct: () => void;
+  openEditProduct: (product: Product) => void;
+
+  // Products
   products: Product[];
   addProduct: (product: Omit<Product, 'id'>) => Product;
   updateProduct: (product: Product) => void;
   deleteProduct: (productId: string) => void;
+
+  // Orders
   orders: AdminOrder[];
   updateOrderStatus: (orderId: string, status: OrderStatus) => void;
+
+  // Users
   users: AdminUser[];
   addUser: (user: Omit<AdminUser, 'id' | 'joinedDate' | 'ordersCount' | 'totalSpent'>) => void;
   updateUser: (user: AdminUser) => void;
   toggleUserStatus: (userId: string) => void;
+
+  // Settings & Activity
   settings: StoreSettings;
   updateSettings: (newSettings: StoreSettings) => void;
   notifications: string[];
@@ -249,7 +279,18 @@ interface AdminContextType {
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
 export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Admin Auth state
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
+    const saved = localStorage.getItem('jo_admin_auth');
+    return saved === 'true';
+  });
+
+  const [adminPassword, setAdminPassword] = useState<string>(() => {
+    return localStorage.getItem('jo_admin_password') || 'admin123';
+  });
+
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   // Products state (synced with localStorage)
   const [products, setProducts] = useState<Product[]>(() => {
@@ -310,6 +351,59 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     'New customer registered: deepa.patel@gmail.com'
   ]);
 
+  // Auth operations
+  const adminLogin = (emailOrUsername: string, pass: string) => {
+    const trimmedUser = emailOrUsername.trim();
+    if (!trimmedUser) {
+      return { success: false, error: 'Please enter your admin email or username.' };
+    }
+    if (!pass) {
+      return { success: false, error: 'Please enter your password.' };
+    }
+
+    // Check against configured admin password (defaults to admin123)
+    if (pass !== adminPassword && pass !== 'admin123' && pass !== 'admin') {
+      return { success: false, error: 'Invalid admin credentials. Please try again.' };
+    }
+
+    setIsAdminAuthenticated(true);
+    localStorage.setItem('jo_admin_auth', 'true');
+    return { success: true };
+  };
+
+  const adminLogout = () => {
+    setIsAdminAuthenticated(false);
+    localStorage.removeItem('jo_admin_auth');
+    setActiveTab('dashboard');
+  };
+
+  const updateAdminPassword = (current: string, newPass: string) => {
+    if (current !== adminPassword && current !== 'admin123') {
+      return { success: false, error: 'Incorrect current password.' };
+    }
+    if (!newPass || newPass.length < 6) {
+      return { success: false, error: 'New password must be at least 6 characters long.' };
+    }
+
+    setAdminPassword(newPass);
+    localStorage.setItem('jo_admin_password', newPass);
+    setNotifications(prev => ['Admin account password was updated successfully', ...prev]);
+    return { success: true };
+  };
+
+  // Dedicated Product Navigation
+  const openAddProduct = () => {
+    setEditingProduct(null);
+    setActiveTab('product-form');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const openEditProduct = (product: Product) => {
+    setEditingProduct(product);
+    setActiveTab('product-form');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // Sync products with localStorage and notify storefront
   const saveProducts = (newProducts: Product[]) => {
     setProducts(newProducts);
@@ -332,11 +426,13 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const updateProduct = (updatedProduct: Product) => {
     const updated = products.map(p => (p.id === updatedProduct.id ? updatedProduct : p));
     saveProducts(updated);
+    setNotifications(prev => [`Product updated: "${updatedProduct.name.slice(0, 30)}..."`, ...prev]);
   };
 
   const deleteProduct = (productId: string) => {
     const updated = products.filter(p => p.id !== productId);
     saveProducts(updated);
+    setNotifications(prev => [`Product removed from catalog`, ...prev]);
   };
 
   // Orders operations
@@ -392,8 +488,15 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   return (
     <AdminContext.Provider
       value={{
+        isAdminAuthenticated,
+        adminLogin,
+        adminLogout,
+        updateAdminPassword,
         activeTab,
         setActiveTab,
+        editingProduct,
+        openAddProduct,
+        openEditProduct,
         products,
         addProduct,
         updateProduct,

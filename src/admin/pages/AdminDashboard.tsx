@@ -5,13 +5,11 @@ import { StatCard } from '../components/StatCard';
 import { RevenueChart } from '../components/RevenueChart';
 import { CategoryPieChart } from '../components/CategoryPieChart';
 import { OrderDetailsModal } from '../components/OrderDetailsModal';
-import { ProductModal } from '../components/ProductModal';
 import { AdminOrder } from '../types';
 
 export const AdminDashboard: React.FC = () => {
-  const { orders, products, users, setActiveTab, updateOrderStatus, addProduct } = useAdmin();
+  const { orders, products, users, setActiveTab, updateOrderStatus, openAddProduct } = useAdmin();
   const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
-  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
 
   // Calculate live stats
   const totalRevenue = orders.reduce((sum, ord) => sum + ord.totalAmount, 245000);
@@ -53,8 +51,8 @@ export const AdminDashboard: React.FC = () => {
 
         <div className="flex items-center space-x-3">
           <button
-            onClick={() => setIsProductModalOpen(true)}
-            className="inline-flex items-center space-x-2 bg-[#f372ac] hover:bg-[#e05996] text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-md hover:scale-102"
+            onClick={openAddProduct}
+            className="inline-flex items-center space-x-2 bg-[#f372ac] hover:bg-[#e05996] text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-md hover:scale-102 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Upload Product</span>
@@ -191,12 +189,6 @@ export const AdminDashboard: React.FC = () => {
         order={selectedOrder}
         onClose={() => setSelectedOrder(null)}
         onUpdateStatus={updateOrderStatus}
-      />
-
-      <ProductModal
-        isOpen={isProductModalOpen}
-        onClose={() => setIsProductModalOpen(false)}
-        onSave={addProduct}
       />
     </div>
   );

@@ -13,14 +13,17 @@ import {
   ExternalLink,
   Store,
   CheckCircle,
-  Clock
+  Clock,
+  LogOut
 } from 'lucide-react';
 import { useAdmin } from './context/AdminContext';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { AdminProducts } from './pages/AdminProducts';
+import { AdminProductForm } from './pages/AdminProductForm';
 import { AdminOrders } from './pages/AdminOrders';
 import { AdminUsers } from './pages/AdminUsers';
 import { AdminSettings } from './pages/AdminSettings';
+import { AdminLogin } from './pages/AdminLogin';
 import { AdminTab } from './types';
 
 interface AdminLayoutProps {
@@ -28,9 +31,23 @@ interface AdminLayoutProps {
 }
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({ onExitToStore }) => {
-  const { activeTab, setActiveTab, products, orders, notifications, clearNotifications } = useAdmin();
+  const {
+    isAdminAuthenticated,
+    adminLogout,
+    activeTab,
+    setActiveTab,
+    products,
+    orders,
+    notifications,
+    clearNotifications
+  } = useAdmin();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+
+  // If not authenticated, render the dedicated Admin Login screen
+  if (!isAdminAuthenticated) {
+    return <AdminLogin onExitToStore={onExitToStore} />;
+  }
 
   const navItems: { id: AdminTab; label: string; icon: React.FC<{ className?: string }>; badge?: number }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -46,6 +63,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onExitToStore }) => {
         return <AdminDashboard />;
       case 'products':
         return <AdminProducts />;
+      case 'product-form':
+        return <AdminProductForm />;
       case 'orders':
         return <AdminOrders />;
       case 'users':
@@ -137,14 +156,21 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onExitToStore }) => {
             </nav>
           </div>
 
-          {/* Bottom Store Shortcut */}
-          <div className="p-4 border-t border-slate-800/80">
+          {/* Bottom Store Shortcut & Logout */}
+          <div className="p-4 border-t border-slate-800/80 space-y-2">
             <button
               onClick={onExitToStore}
               className="w-full flex items-center justify-center space-x-2 bg-slate-800 hover:bg-slate-700 text-white py-2.5 px-4 rounded-xl text-xs font-semibold tracking-wide transition-colors cursor-pointer"
             >
               <Store className="w-4 h-4 text-[#f372ac]" />
               <span>Back to Storefront</span>
+            </button>
+            <button
+              onClick={adminLogout}
+              className="w-full flex items-center justify-center space-x-2 bg-slate-900/80 hover:bg-rose-950/40 text-rose-400 hover:text-rose-300 py-2 px-4 rounded-xl text-xs font-semibold tracking-wide border border-rose-900/30 transition-colors cursor-pointer"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Sign Out</span>
             </button>
           </div>
         </aside>
@@ -224,7 +250,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onExitToStore }) => {
                 )}
               </div>
 
-              {/* Admin Avatar */}
+              {/* Admin Avatar & Quick Logout */}
               <div className="flex items-center space-x-3 pl-3 border-l border-gray-200">
                 <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
                   RR
@@ -233,6 +259,13 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onExitToStore }) => {
                   <p className="font-bold text-gray-900 leading-tight">Rahul Racharla</p>
                   <p className="text-gray-400 text-[10px]">Super Administrator</p>
                 </div>
+                <button
+                  onClick={adminLogout}
+                  className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                  title="Log out of Admin"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
               </div>
             </div>
           </header>

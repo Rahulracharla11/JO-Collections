@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Users, UserPlus, Search, Shield, User, Edit2, Ban, CheckCircle } from 'lucide-react';
+import { Users, UserPlus, Search, Shield, User, Edit2, Ban, CheckCircle, Eye } from 'lucide-react';
 import { useAdmin } from '../context/AdminContext';
 import { UserModal } from '../components/UserModal';
+import { UserDetailsModal } from '../components/UserDetailsModal';
 import { AdminUser } from '../types';
 
 export const AdminUsers: React.FC = () => {
@@ -11,6 +12,9 @@ export const AdminUsers: React.FC = () => {
   const [roleFilter, setRoleFilter] = useState('All');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [userToEdit, setUserToEdit] = useState<AdminUser | null>(null);
+
+  const [selectedUserForDetails, setSelectedUserForDetails] = useState<AdminUser | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   const filteredUsers = users.filter(u => {
     if (roleFilter !== 'All' && u.role !== roleFilter) return false;
@@ -144,17 +148,27 @@ export const AdminUsers: React.FC = () => {
                     </td>
                     <td className="p-4 text-gray-400 text-xs">{u.joinedDate}</td>
                     <td className="p-4 text-right">
-                      <div className="flex items-center justify-end space-x-2">
+                      <div className="flex items-center justify-end space-x-1.5">
+                        <button
+                          onClick={() => {
+                            setSelectedUserForDetails(u);
+                            setIsDetailsModalOpen(true);
+                          }}
+                          className="p-1.5 text-gray-500 hover:text-[#f372ac] hover:bg-pink-50 rounded-md transition-colors cursor-pointer"
+                          title="View Details & Order History"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
                         <button
                           onClick={() => handleOpenEdit(u)}
-                          className="p-1.5 text-gray-500 hover:text-black hover:bg-gray-100 rounded-md transition-colors"
+                          className="p-1.5 text-gray-500 hover:text-black hover:bg-gray-100 rounded-md transition-colors cursor-pointer"
                           title="Edit User"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => toggleUserStatus(u.id)}
-                          className={`p-1.5 rounded-md transition-colors ${
+                          className={`p-1.5 rounded-md transition-colors cursor-pointer ${
                             u.status === 'Active'
                               ? 'text-rose-500 hover:bg-rose-50'
                               : 'text-emerald-600 hover:bg-emerald-50'
@@ -188,6 +202,15 @@ export const AdminUsers: React.FC = () => {
           }
         }}
         userToEdit={userToEdit}
+      />
+
+      <UserDetailsModal
+        isOpen={isDetailsModalOpen}
+        onClose={() => {
+          setIsDetailsModalOpen(false);
+          setSelectedUserForDetails(null);
+        }}
+        user={selectedUserForDetails}
       />
     </div>
   );

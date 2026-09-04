@@ -29,6 +29,8 @@ export interface AdminUser {
   id: string;
   name: string;
   email: string;
+  phone?: string;
+  address?: string;
   role: 'Administrator' | 'Customer' | 'Store Manager';
   ordersCount: number;
   totalSpent: number;
@@ -54,4 +56,4 @@ export interface StoreSettings {
   };
 }
 
-export type AdminTab = 'dashboard' | 'products' | 'orders' | 'users' | 'settings';
+export type AdminTab = 'dashboard' | 'products' | 'product-form' | 'orders' | 'users' | 'settings';

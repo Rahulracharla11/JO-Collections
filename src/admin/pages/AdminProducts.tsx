@@ -1,18 +1,14 @@
 import React, { useState } from 'react';
 import { Plus, Search, Filter, Edit2, Trash2, CheckCircle2, AlertCircle, Eye } from 'lucide-react';
 import { useAdmin } from '../context/AdminContext';
-import { ProductModal } from '../components/ProductModal';
 import { Product } from '../../types';
 
 export const AdminProducts: React.FC = () => {
-  const { products, addProduct, updateProduct, deleteProduct } = useAdmin();
+  const { products, deleteProduct, openAddProduct, openEditProduct } = useAdmin();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [stockFilter, setStockFilter] = useState<'All' | 'inStock' | 'outOfStock'>('All');
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [productToEdit, setProductToEdit] = useState<Product | null>(null);
 
   const categories = ['All', 'Sarees', 'Jewellery', 'Dress Materials', 'Kurtis', 'Black Beads'];
 
@@ -40,16 +36,6 @@ export const AdminProducts: React.FC = () => {
     return true;
   });
 
-  const handleOpenAdd = () => {
-    setProductToEdit(null);
-    setIsModalOpen(true);
-  };
-
-  const handleOpenEdit = (p: Product) => {
-    setProductToEdit(p);
-    setIsModalOpen(true);
-  };
-
   const handleDelete = (id: string, name: string) => {
     if (window.confirm(`Are you sure you want to delete "${name.slice(0, 35)}..."?`)) {
       deleteProduct(id);
@@ -68,8 +54,8 @@ export const AdminProducts: React.FC = () => {
         </div>
 
         <button
-          onClick={handleOpenAdd}
-          className="inline-flex items-center space-x-2 bg-black hover:bg-[#f372ac] text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors shadow-sm self-start sm:self-auto"
+          onClick={openAddProduct}
+          className="inline-flex items-center space-x-2 bg-black hover:bg-[#f372ac] text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors shadow-sm self-start sm:self-auto cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>Add New Product</span>
@@ -194,15 +180,15 @@ export const AdminProducts: React.FC = () => {
                   <td className="p-4 text-right">
                     <div className="flex items-center justify-end space-x-1">
                       <button
-                        onClick={() => handleOpenEdit(prod)}
-                        className="p-1.5 rounded-md hover:bg-gray-100 text-gray-600 hover:text-black transition-colors"
+                        onClick={() => openEditProduct(prod)}
+                        className="p-1.5 rounded-md hover:bg-gray-100 text-gray-600 hover:text-black transition-colors cursor-pointer"
                         title="Edit Product"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(prod.id, prod.name)}
-                        className="p-1.5 rounded-md hover:bg-rose-50 text-gray-400 hover:text-rose-600 transition-colors"
+                        className="p-1.5 rounded-md hover:bg-rose-50 text-gray-400 hover:text-rose-600 transition-colors cursor-pointer"
                         title="Delete Product"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -215,19 +201,6 @@ export const AdminProducts: React.FC = () => {
           </table>
         </div>
       </div>
-
-      <ProductModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSave={prodData => {
-          if ('id' in prodData) {
-            updateProduct(prodData as Product);
-          } else {
-            addProduct(prodData);
-          }
-        }}
-        productToEdit={productToEdit}
-      />
     </div>
   );
 };
