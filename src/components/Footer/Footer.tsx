@@ -3,7 +3,7 @@ import { Instagram, Youtube, Facebook, ArrowUp } from 'lucide-react';
 import { useShop } from '../../context/ShopContext';
 
 export const Footer: React.FC = () => {
-  const { setActiveCategory, setIsCartOpen } = useShop();
+  const { setActiveCategory, setIsCartOpen, navigateToAccount } = useShop();
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -187,14 +187,20 @@ export const Footer: React.FC = () => {
                 </button>
               </li>
               <li>
-                <a href="#account" className="hover:text-[#f372ac] transition-colors">
+                <button
+                  onClick={() => navigateToAccount('dashboard')}
+                  className="hover:text-[#f372ac] transition-colors text-left"
+                >
                   My account
-                </a>
+                </button>
               </li>
               <li>
-                <a href="#orders" className="hover:text-[#f372ac] transition-colors">
+                <button
+                  onClick={() => navigateToAccount('orders')}
+                  className="hover:text-[#f372ac] transition-colors text-left"
+                >
                   My orders
-                </a>
+                </button>
               </li>
               <li>
                 <a href="#wishlist" className="hover:text-[#f372ac] transition-colors">

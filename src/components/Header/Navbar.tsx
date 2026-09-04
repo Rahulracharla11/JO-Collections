@@ -10,7 +10,11 @@ export const Navbar: React.FC = () => {
     setIsCartOpen,
     setIsMobileMenuOpen,
     setIsSearchOpen,
-    setActiveCategory
+    setActiveCategory,
+    navigateToHome,
+    navigateToAccount,
+    user,
+    isAuthenticated
   } = useShop();
 
   const [isSticky, setIsSticky] = useState(false);
@@ -56,13 +60,17 @@ export const Navbar: React.FC = () => {
 
         {/* Logo */}
         <div className="flex-shrink-0">
-          <a href="#" onClick={() => { setActiveCategory('all'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
+          <button
+            onClick={() => navigateToHome()}
+            className="cursor-pointer flex items-center"
+            aria-label="Jo Collections Home"
+          >
             <img
               src="https://jocollections.com/wp-content/uploads/2023/11/logo10.png"
               alt="Jo Collections"
               className="h-10 md:h-12 lg:h-14 w-auto object-contain"
             />
-          </a>
+          </button>
         </div>
 
         {/* Desktop Navigation */}
@@ -448,14 +456,32 @@ export const Navbar: React.FC = () => {
 
           {/* My Account */}
           <div className="relative hidden sm:block">
-            <button
-              onClick={() => setIsAccountOpen(prev => !prev)}
-              className="flex items-center space-x-1.5 text-[14px] font-medium text-[#222] hover:text-[#f372ac] transition-colors py-2"
-            >
-              <User className="w-4 h-4" />
-              <span className="hidden md:inline">Sign in/Sign up</span>
-              <ChevronDown className="w-3 h-3 text-gray-400" />
-            </button>
+            <div className="flex items-center">
+              <button
+                onClick={() => {
+                  if (isAuthenticated) {
+                    navigateToAccount('dashboard');
+                  } else {
+                    navigateToAccount('auth');
+                  }
+                }}
+                className="flex items-center space-x-1.5 text-[14px] font-medium text-[#222] hover:text-[#f372ac] transition-colors py-2 cursor-pointer"
+              >
+                <User className="w-4 h-4" />
+                <span className="hidden md:inline">
+                  {isAuthenticated && user
+                    ? `Hello, ${user.displayName || user.username}`
+                    : 'Sign in/Sign up'}
+                </span>
+              </button>
+              <button
+                onClick={() => setIsAccountOpen(prev => !prev)}
+                className="p-1 text-gray-400 hover:text-black transition-colors"
+                aria-label="Account options"
+              >
+                <ChevronDown className="w-3.5 h-3.5" />
+              </button>
+            </div>
             <AccountDropdown isOpen={isAccountOpen} onClose={() => setIsAccountOpen(false)} />
           </div>
 

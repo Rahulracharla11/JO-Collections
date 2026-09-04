@@ -1,9 +1,17 @@
 import React, { useState } from 'react';
-import { X, ChevronDown, ChevronRight, Heart, Instagram, Youtube, Twitter, Facebook } from 'lucide-react';
+import { X, ChevronDown, ChevronRight, Heart, Instagram, Youtube, Twitter, Facebook, User } from 'lucide-react';
 import { useShop } from '../../context/ShopContext';
 
 export const MobileMenuDrawer: React.FC = () => {
-  const { isMobileMenuOpen, setIsMobileMenuOpen, wishlist, setActiveCategory } = useShop();
+  const {
+    isMobileMenuOpen,
+    setIsMobileMenuOpen,
+    wishlist,
+    setActiveCategory,
+    navigateToAccount,
+    isAuthenticated,
+    user
+  } = useShop();
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
 
   if (!isMobileMenuOpen) return null;
@@ -186,6 +194,25 @@ export const MobileMenuDrawer: React.FC = () => {
               <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
                 {wishlist.length}
               </span>
+            </div>
+
+            {/* My Account in drawer */}
+            <div
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                navigateToAccount(isAuthenticated ? 'dashboard' : 'auth');
+              }}
+              className="px-5 py-4 flex items-center justify-between text-[15px] font-medium text-[#222] hover:text-[#f372ac] cursor-pointer"
+            >
+              <div className="flex items-center space-x-2">
+                <User className="w-4 h-4 text-gray-600" />
+                <span>
+                  {isAuthenticated && user
+                    ? `Account (${user.displayName || user.username})`
+                    : 'Sign in / Register'}
+                </span>
+              </div>
+              <span className="text-xs text-[#f372ac] font-semibold">&rarr;</span>
             </div>
           </div>
 

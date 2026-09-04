@@ -2,7 +2,27 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Product, CartItem } from '../types';
 import { PRODUCTS } from '../data/products';
 
+export interface UserProfile {
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  displayName: string;
+}
+
+export type PageView = 'home' | 'my-account';
+export type AccountSubView =
+  | 'auth'
+  | 'lost-password'
+  | 'reset-password'
+  | 'dashboard'
+  | 'orders'
+  | 'downloads'
+  | 'addresses'
+  | 'account-details';
+
 interface ShopContextType {
+  // Cart & Wishlist
   cart: CartItem[];
   wishlist: Product[];
   addToCart: (product: Product, quantity?: number) => void;
@@ -13,6 +33,8 @@ interface ShopContextType {
   cartCount: number;
   toggleWishlist: (product: Product) => void;
   isInWishlist: (productId: string) => boolean;
+
+  // Drawers & Modals
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
   isMobileMenuOpen: boolean;
@@ -23,24 +45,41 @@ interface ShopContextType {
   setQuickViewProduct: (product: Product | null) => void;
   toastMessage: string | null;
   setToastMessage: (msg: string | null) => void;
+
+  // Search & Categories
   activeCategory: string;
   setActiveCategory: (cat: string) => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+
+  // Page Routing & Navigation
+  currentPage: PageView;
+  setCurrentPage: (page: PageView) => void;
+  accountSubView: AccountSubView;
+  setAccountSubView: (view: AccountSubView) => void;
+  navigateToHome: () => void;
+  navigateToAccount: (view?: AccountSubView) => void;
+
+  // User & Authentication
+  user: UserProfile | null;
+  isAuthenticated: boolean;
+  authSuccessNotice: string | null;
+  setAuthSuccessNotice: (msg: string | null) => void;
+  login: (usernameOrEmail: string, password: string) => { success: boolean; error?: string };
+  register: (email: string) => { success: boolean; error?: string };
+  logout: () => void;
+  requestPasswordReset: (usernameOrEmail: string) => { success: boolean; error?: string };
+  setNewPassword: (password: string) => { success: boolean; error?: string };
+  updateAccountDetails: (data: Partial<UserProfile> & { currentPassword?: string; newPassword?: string }) => { success: boolean; error?: string };
 }
 
 const ShopContext = createContext<ShopContextType | undefined>(undefined);
 
 export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Cart
   const [cart, setCart] = useState<CartItem[]>(() => {
-    // Initial cart with items to reflect the cart preview seen on jocollections.com
     const initialProd = PRODUCTS.find(p => p.id === '12c7c') || PRODUCTS[0];
-    return [
-      {
-        product: initialProd,
-        quantity: 2
-      }
-    ];
+    return [{ product: initialProd, quantity: 2 }];
   });
 
   const [wishlist, setWishlist] = useState<Product[]>([]);
@@ -51,6 +90,34 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+
+  // Navigation State
+  const [currentPage, setCurrentPage] = useState<PageView>('home');
+  const [accountSubView, setAccountSubView] = useState<AccountSubView>('auth');
+  const [authSuccessNotice, setAuthSuccessNotice] = useState<string | null>(null);
+
+  // Authentication State
+  const [user, setUser] = useState<UserProfile | null>(() => {
+    const saved = localStorage.getItem('jo_user');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  });
+
+  const isAuthenticated = !!user;
+
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem('jo_user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('jo_user');
+    }
+  }, [user]);
 
   const addToCart = (product: Product, quantity = 1) => {
     setCart(prev => {
@@ -118,6 +185,135 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
+  // Navigation handlers
+  const navigateToHome = () => {
+    setCurrentPage('home');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const navigateToAccount = (view?: AccountSubView) => {
+    setCurrentPage('my-account');
+    if (view) {
+      setAccountSubView(view);
+    } else {
+      setAccountSubView(user ? 'dashboard' : 'auth');
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Auth Operations
+  const login = (usernameOrEmail: string, password: string) => {
+    const trimmed = usernameOrEmail.trim();
+    if (!trimmed) {
+      return { success: false, error: 'Username or email is required.' };
+    }
+    if (!password) {
+      return { success: false, error: 'Password is required.' };
+    }
+
+    const derivedUsername = trimmed.includes('@') ? trimmed.split('@')[0] : trimmed;
+    const newUser: UserProfile = {
+      username: derivedUsername,
+      email: trimmed.includes('@') ? trimmed : `${derivedUsername}@example.com`,
+      firstName: derivedUsername,
+      lastName: '',
+      displayName: derivedUsername
+    };
+
+    setUser(newUser);
+    setAccountSubView('dashboard');
+    return { success: true };
+  };
+
+  const register = (email: string) => {
+    const trimmed = email.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!trimmed) {
+      return { success: false, error: 'Please enter a valid email address.' };
+    }
+    if (!emailRegex.test(trimmed)) {
+      return { success: false, error: 'Please provide a valid email address.' };
+    }
+
+    const derivedUsername = trimmed.split('@')[0];
+    const newUser: UserProfile = {
+      username: derivedUsername,
+      email: trimmed,
+      firstName: derivedUsername,
+      lastName: '',
+      displayName: derivedUsername
+    };
+
+    setUser(newUser);
+    setAuthSuccessNotice('Your account has been created successfully.');
+    setAccountSubView('dashboard');
+    return { success: true };
+  };
+
+  const logout = () => {
+    setUser(null);
+    setAuthSuccessNotice(null);
+    setAccountSubView('auth');
+  };
+
+  const requestPasswordReset = (usernameOrEmail: string) => {
+    const trimmed = usernameOrEmail.trim();
+    if (!trimmed) {
+      return { success: false, error: 'Please enter a username or email address.' };
+    }
+    // Transition to Set New Password screen
+    setAccountSubView('reset-password');
+    return { success: true };
+  };
+
+  const setNewPassword = (password: string) => {
+    if (!password || password.length < 6) {
+      return { success: false, error: 'Password must be at least 6 characters.' };
+    }
+
+    // Default or current user
+    const defaultUser: UserProfile = user || {
+      username: 'rrahulwork03',
+      email: 'rahulwork03@gmail.com',
+      firstName: 'Rahul',
+      lastName: 'Racharla',
+      displayName: 'rrahulwork03'
+    };
+
+    setUser(defaultUser);
+    setAuthSuccessNotice('Your password has been reset successfully.');
+    setAccountSubView('dashboard');
+    return { success: true };
+  };
+
+  const updateAccountDetails = (data: Partial<UserProfile> & { currentPassword?: string; newPassword?: string }) => {
+    if (!user) return { success: false, error: 'Not logged in' };
+
+    if (!data.firstName?.trim()) {
+      return { success: false, error: 'First name is a required field.' };
+    }
+    if (!data.lastName?.trim()) {
+      return { success: false, error: 'Last name is a required field.' };
+    }
+    if (!data.displayName?.trim()) {
+      return { success: false, error: 'Display name is a required field.' };
+    }
+    if (!data.email?.trim()) {
+      return { success: false, error: 'Email address is a required field.' };
+    }
+
+    setUser({
+      ...user,
+      firstName: data.firstName.trim(),
+      lastName: data.lastName.trim(),
+      displayName: data.displayName.trim(),
+      email: data.email.trim()
+    });
+
+    setAuthSuccessNotice('Account details changed successfully.');
+    return { success: true };
+  };
+
   return (
     <ShopContext.Provider
       value={{
@@ -144,7 +340,23 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
         activeCategory,
         setActiveCategory,
         searchQuery,
-        setSearchQuery
+        setSearchQuery,
+        currentPage,
+        setCurrentPage,
+        accountSubView,
+        setAccountSubView,
+        navigateToHome,
+        navigateToAccount,
+        user,
+        isAuthenticated,
+        authSuccessNotice,
+        setAuthSuccessNotice,
+        login,
+        register,
+        logout,
+        requestPasswordReset,
+        setNewPassword,
+        updateAccountDetails
       }}
     >
       {children}

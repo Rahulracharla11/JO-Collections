@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShopProvider } from './context/ShopContext';
+import { ShopProvider, useShop } from './context/ShopContext';
 import { TopBar } from './components/Header/TopBar';
 import { Navbar } from './components/Header/Navbar';
 import { MobileMenuDrawer } from './components/Header/MobileMenuDrawer';
@@ -16,6 +16,43 @@ import { TrustBadges } from './components/Trust/TrustBadges';
 import { Footer } from './components/Footer/Footer';
 import { QuickViewModal } from './components/Modals/QuickViewModal';
 import { CartNotificationToast } from './components/Toast/CartNotificationToast';
+import { MyAccountPage } from './pages/MyAccountPage';
+
+const MainContent: React.FC = () => {
+  const { currentPage } = useShop();
+
+  if (currentPage === 'my-account') {
+    return <MyAccountPage />;
+  }
+
+  return (
+    <>
+      {/* Revolution-style Hero Carousel */}
+      <HeroSlider />
+
+      {/* Two-Column Featured Category Banners */}
+      <TwoColumnBanners />
+
+      {/* 7-Column Circular Category Slider */}
+      <CategorySlider />
+
+      {/* Dynamic 5-Column Products Catalog with Filters */}
+      <ProductCarousel />
+
+      {/* Summer 2024 Showcase with Rotated Floating Images */}
+      <SummerSaleSection />
+
+      {/* Wedding Clothing Collection Showcase */}
+      <WeddingClothingBanner />
+
+      {/* Brand Philosophy & Saree Guides SEO Accordion */}
+      <SeoAccordion />
+
+      {/* Trust Value Badges */}
+      <TrustBadges />
+    </>
+  );
+};
 
 export function App() {
   return (
@@ -36,29 +73,7 @@ export function App() {
 
         {/* Main Page Content */}
         <main className="flex-1">
-          {/* Revolution-style Hero Carousel */}
-          <HeroSlider />
-
-          {/* Two-Column Featured Category Banners */}
-          <TwoColumnBanners />
-
-          {/* 7-Column Circular Category Slider */}
-          <CategorySlider />
-
-          {/* Dynamic 5-Column Products Catalog with Filters */}
-          <ProductCarousel />
-
-          {/* Summer 2024 Showcase with Rotated Floating Images */}
-          <SummerSaleSection />
-
-          {/* Wedding Clothing Collection Showcase */}
-          <WeddingClothingBanner />
-
-          {/* Brand Philosophy & Saree Guides SEO Accordion */}
-          <SeoAccordion />
-
-          {/* Trust Value Badges */}
-          <TrustBadges />
+          <MainContent />
         </main>
 
         {/* Authentic Jo Collections Footer */}
